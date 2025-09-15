@@ -17,7 +17,6 @@ def close_db_connection(conn, cur):
     cur.close()
     conn.close()
 
-
 DB_HOST = os.getenv("DB_HOST", "localhost")
 DB_NAME = os.getenv("DB_NAME", "postgres")
 DB_USER = os.getenv("DB_USER", "postgres")
@@ -25,8 +24,7 @@ DB_PASSWORD = os.getenv("DB_PASSWORD", "EM:IwltdoM,jnoi")
 DB_PORT = os.getenv("DB_PORT", 5432)
 
 def create_table():
-    conn_init = get_db_connection()
-    cur_init = conn_init.cursor()
+    conn_init, cur_init = get_db_connection()
     cur_init.execute(f"""
             CREATE TABLE IF NOT EXISTS chess_players(
                 id SERIAL PRIMARY KEY, 
@@ -60,7 +58,7 @@ async def players():
     return players_data
 
 @app.get('/maxplayer/{rating_type}')
-async def get_max_player(rating_type:str):
+async def get_max_player(rating_type:str, minormax: str = None):
     conn_init, cur_init = get_db_connection()
     cur_init.execute(f"SELECT * FROM chess_players ORDER BY {rating_type} DESC;")
     players_data = cur_init.fetchone()
