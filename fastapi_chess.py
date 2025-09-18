@@ -60,16 +60,28 @@ async def players():
 @app.get('/maxplayer/{rating_type}')
 async def get_max_player(rating_type:str, minormax: str = None):
     conn_init, cur_init = get_db_connection()
-    cur_init.execute(f"SELECT * FROM chess_players ORDER BY {rating_type} DESC;")
-    players_data = cur_init.fetchone()
+    players_data = tuple()
+    if minormax == "min":
+        cur_init.execute(f"SELECT * FROM chess_players ORDER BY {rating_type} ASC;")
+        players_data = cur_init.fetchone()
+    elif minormax == "max": 
+        cur_init.execute(f"SELECT * FROM chess_players ORDER BY {rating_type} DESC;")
+        players_data = cur_init.fetchone()
     close_db_connection(conn_init, cur_init)
     return players_data
+
+@app.get('/playerid/{id}')
+async def get_playerid(id: int = 0):
+    conn_init, cur_init = get_db_connection()
+    cur_init.execute(f'SELECT * FROM chess_players WHERE id = %s', (id,))
+    player_data = cur_init.fetchone()
+    close_db_connection(conn_init, cur_init)
+    return player_data
 
 @app.get('/player')
 async def player(name:str = None, vorname:str = None):
     conn_init, cur_init = get_db_connection()
     player_data = dict()
-    print(vorname, name)
     if name != None:
         cur_init.execute(f'SELECT * FROM chess_players WHERE name = %s', (name,) )
         result = cur_init.fetchone()
@@ -93,7 +105,7 @@ async def player(name:str = None, vorname:str = None):
 async def newplayer(player: NewPlayer):
     conn_init, cur_init = get_db_connection()
     new_player = ("INSERT INTO chess_players (vorname, name, classical, rapid, blitz) VALUES (%s, %s, %s, %s, %s);")
-    player_data = (player.vorname, player.name, player.classical, player.rapid, player.blitz )
+    player_data = (player.vorname, player.name, player.classical, player.rapid, player.blitz)
     cur_init.execute(new_player, player_data)
     conn_init.commit()
     close_db_connection(conn_init, cur_init)
