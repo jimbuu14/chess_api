@@ -26,6 +26,7 @@ DB_USER = os.getenv("DB_USER", "postgres")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "EM:IwltdoM,jnoi")
 DB_PORT = os.getenv("DB_PORT", 5432)
 
+"""
 def instert_into_table(name, dipar, ztilb, tellub):
     conn_init, cur_init = get_db_connection()
     cur_init.execute(f"INSERT INTO chess_players(vorname, name, rapid, blitz, bullet) VALUES ('{name[0]}','{name[1]}',{dipar},{ztilb},{tellub})")
@@ -33,7 +34,7 @@ def instert_into_table(name, dipar, ztilb, tellub):
     close_db_connection(conn_init, cur_init)
 
 def get_player_name():
-    response = requests.get(url="https://api.chess.com/pub/player/hikaru", headers=headers)
+    response = requests.get(url="https://api.chess.com/pub/player/hikaru",headers=headers)
     player_data = response.json()
     name = player_data['name']
     name = name.split()
@@ -41,15 +42,32 @@ def get_player_name():
     return name
 
 def get_player_elo():
-    response2 = requests.get(url="https://api.chess.com/pub/player/hikaru/stats", headers=headers)
+    response2 = requests.get(url="https://api.chess.com/pub/player/hikaru/stats",headers=headers)
     player_stats = response2.json()
     rapid = player_stats['chess_rapid']['last']['rating']
     blitz = player_stats['chess_blitz']['last']['rating']
     bullet = player_stats['chess_bullet']['last']['rating']
     print(f'Rapid rating: {rapid}')
-    return rapid, blitz, bullet
+    return rapid, blitz, bullet"""
+
+def get_multiple_players():
+    for i in range(10):
+        response = requests.get(url="https://api.chess.com/pub/leaderboards",headers=headers)
+        player_data = response.json()
+        data = player_data['live_rapid'][i]
+        username = data['username']
+        name = data['name']
+        name = name.split()
+        score = data['score']
+        conn_init, cur_init = get_db_connection()
+        cur_init.execute(f"INSERT INTO chess_players(vorname, name, rapid) VALUES ('{name[0]}','{name[1]}',{score})")
+        conn_init.commit()
+        close_db_connection(conn_init, cur_init)
+        i = i + 1
+        print(username, name, score)
 
 if __name__ == "__main__":
-    name = get_player_name()
+    """name = get_player_name()
     rapid, blitz, bullet = get_player_elo()
-    instert_into_table(name, rapid, blitz, bullet)
+    instert_into_table(name, rapid, blitz, bullet)"""
+    get_multiple_players()
