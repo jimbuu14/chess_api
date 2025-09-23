@@ -28,11 +28,12 @@ def create_table():
     cur_init.execute(f"""
             CREATE TABLE IF NOT EXISTS chess_players(
                 id SERIAL PRIMARY KEY, 
-                vorname VARCHAR(100) NOT NULL,
-                name VARCHAR(100) NOT NULL,
-                classical INT DEFAULT 0,
+                username VARCHAR(100) NOT NULL,
+                vorname VARCHAR(100),
+                name VARCHAR(100),
                 rapid INT DEFAULT 0,
-                blitz INT DEFAULT 0
+                blitz INT DEFAULT 0,
+                bullet INT DEFAULT 0
             );
         """)
     conn_init.commit()

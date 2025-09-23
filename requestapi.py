@@ -79,7 +79,7 @@ def get_multiple_players():
         player_dict["name"] = name[1]
         player_dict["vorname"] = name[0]
         player_dict["rapid"] = data['score']
-
+        
         conn_init, cur_init = get_db_connection()
         cur_init.execute(f"INSERT INTO chess_players(username, vorname, name, rapid, blitz, bullet) VALUES ('{player_dict["username"]}', '{player_dict["vorname"]}','{player_dict["name"]}',{player_dict["rapid"]}, {player_dict["blitz"]}, {player_dict["bullet"]});")
         conn_init.commit()
