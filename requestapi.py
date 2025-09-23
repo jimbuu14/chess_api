@@ -36,35 +36,56 @@ def instert_into_table(name, dipar, ztilb, tellub):
 def get_player_name():
     response = requests.get(url="https://api.chess.com/pub/player/hikaru",headers=headers)
     player_data = response.json()
+
     name = player_data['name']
     name = name.split()
+
     print(f'Name: {name[0]}')
     return name
 
 def get_player_elo():
     response2 = requests.get(url="https://api.chess.com/pub/player/hikaru/stats",headers=headers)
     player_stats = response2.json()
+
     rapid = player_stats['chess_rapid']['last']['rating']
     blitz = player_stats['chess_blitz']['last']['rating']
     bullet = player_stats['chess_bullet']['last']['rating']
+
     print(f'Rapid rating: {rapid}')
     return rapid, blitz, bullet"""
 
 def get_multiple_players():
-    for i in range(10):
-        response = requests.get(url="https://api.chess.com/pub/leaderboards",headers=headers)
-        player_data = response.json()
+    player_dict = {"username": "","vorname": "", "name": "", "rapid": 0, "blitz": 0, "bullet": 0}
+    response = requests.get(url="https://api.chess.com/pub/leaderboards",headers=headers)
+    player_data = response.json()
+
+    for i in range(50):
         data = player_data['live_rapid'][i]
-        username = data['username']
-        name = data['name']
-        name = name.split()
-        score = data['score']
+        player_dict["username"] = data['username']
+
+        for x in player_data['live_blitz']:
+            if x['username'] == player_dict["username"]:
+                player_dict["blitz"] = x['score']
+
+        for y in player_data['live_bullet']:
+            if y['username'] == player_dict["username"]:
+                player_dict["bullet"] = y['score']
+
+        name = data.get("name")
+        if name == None:
+            name = (None, None)
+        else:
+            name = name.split()
+        player_dict["name"] = name[1]
+        player_dict["vorname"] = name[0]
+        player_dict["rapid"] = data['score']
+
         conn_init, cur_init = get_db_connection()
-        cur_init.execute(f"INSERT INTO chess_players(vorname, name, rapid) VALUES ('{name[0]}','{name[1]}',{score})")
+        cur_init.execute(f"INSERT INTO chess_players(username, vorname, name, rapid, blitz, bullet) VALUES ('{player_dict["username"]}', '{player_dict["vorname"]}','{player_dict["name"]}',{player_dict["rapid"]}, {player_dict["blitz"]}, {player_dict["bullet"]});")
         conn_init.commit()
         close_db_connection(conn_init, cur_init)
-        i = i + 1
-        print(username, name, score)
+
+        print(player_dict)
 
 if __name__ == "__main__":
     """name = get_player_name()
