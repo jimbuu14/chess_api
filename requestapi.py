@@ -55,37 +55,52 @@ def get_player_elo():
     return rapid, blitz, bullet"""
 
 def get_multiple_players():
-    player_dict = {"username": "","vorname": "", "name": "", "rapid": 0, "blitz": 0, "bullet": 0}
+    conn_init, cur_init = get_db_connection()
     response = requests.get(url="https://api.chess.com/pub/leaderboards",headers=headers)
     player_data = response.json()
+    blitz_usernames = []
+    bullet_usernames = []
+
+    for x in range(50):
+        blitz_username = player_data['live_blitz'][x]['username']
+        blitz_usernames.append(blitz_username)
+    
+    for y in range(50):
+        bullet_username = player_data['live_bullet'][y]['username']
+        bullet_usernames.append(bullet_username)
 
     for i in range(50):
-        data = player_data['live_rapid'][i]
-        player_dict["username"] = data['username']
+        player_dict = {"username": "","vorname": "", "name": "", "rapid": 0, "blitz": 0, "bullet": 0}
+        data_rapid = player_data['live_rapid'][i]
+        player_dict["username"] = data_rapid['username']
 
-        for x in player_data['live_blitz']:
-            if x['username'] == player_dict["username"]:
-                player_dict["blitz"] = x['score']
-
-        for y in player_data['live_bullet']:
-            if y['username'] == player_dict["username"]:
-                player_dict["bullet"] = y['score']
-
-        name = data.get("name")
+        name = data_rapid.get("name")
         if name == None:
             name = (None, None)
         else:
             name = name.split()
         player_dict["name"] = name[1]
         player_dict["vorname"] = name[0]
-        player_dict["rapid"] = data['score']
-        
-        conn_init, cur_init = get_db_connection()
+        player_dict["rapid"] = data_rapid['score']
+
+        if player_dict["username"] in blitz_usernames:
+            for blitz_player in player_data['live_blitz']:
+                if blitz_player['username'] == player_dict['username']:
+                    player_dict["blitz"] = blitz_player['score']
+        else:
+            player_dict["blitz"] = 0
+
+        if player_dict["username"] in bullet_usernames:
+            for bullet_player in player_data['live_bullet']:
+                if bullet_player['username'] == player_dict['username']:
+                    player_dict["bullet"] = bullet_player['score']
+        else:
+            player_dict["bullet"] = 0
+
         cur_init.execute(f"INSERT INTO chess_players(username, vorname, name, rapid, blitz, bullet) VALUES ('{player_dict["username"]}', '{player_dict["vorname"]}','{player_dict["name"]}',{player_dict["rapid"]}, {player_dict["blitz"]}, {player_dict["bullet"]});")
         conn_init.commit()
-        close_db_connection(conn_init, cur_init)
+    close_db_connection(conn_init, cur_init)
 
-        print(player_dict)
 
 if __name__ == "__main__":
     """name = get_player_name()
