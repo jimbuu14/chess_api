@@ -43,12 +43,15 @@ create_table()
 
 app = FastAPI()
 
+player_dict = {"username": "","vorname": "", "name": "", "rapid": 0, "blitz": 0, "bullet": 0}
+
 class NewPlayer(BaseModel):
+    username: str
     vorname: str
     name: str
-    classical: int = 0 
-    rapid: int = 0
+    rapid: int = 0 
     blitz: int = 0
+    bullet: int = 0
 
 @app.get('/players')
 async def players():
@@ -105,8 +108,8 @@ async def player(name:str = None, vorname:str = None):
 @app.post('/newplayers')
 async def newplayer(player: NewPlayer):
     conn_init, cur_init = get_db_connection()
-    new_player = ("INSERT INTO chess_players (vorname, name, classical, rapid, blitz) VALUES (%s, %s, %s, %s, %s);")
-    player_data = (player.vorname, player.name, player.classical, player.rapid, player.blitz)
+    new_player = ("INSERT INTO chess_players (username, vorname, name, rapid, blitz, bullet) VALUES (%s, %s, %s, %s, %s, %s);")
+    player_data = (player.username, player.vorname, player.name, player.rapid, player.blitz, player.bullet)
     cur_init.execute(new_player, player_data)
     conn_init.commit()
     close_db_connection(conn_init, cur_init)
