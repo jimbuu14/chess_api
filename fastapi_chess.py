@@ -43,8 +43,6 @@ create_table()
 
 app = FastAPI()
 
-player_dict = {"username": "","vorname": "", "name": "", "rapid": 0, "blitz": 0, "bullet": 0}
-
 class NewPlayer(BaseModel):
     username: str
     vorname: str

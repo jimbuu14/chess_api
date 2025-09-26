@@ -76,7 +76,7 @@ def get_multiple_players():
 
         name = data_rapid.get("name")
         if name == None:
-            name = (None, None)
+            name = ("None", "None")
         else:
             name = name.split()
         player_dict["name"] = name[1]
@@ -111,10 +111,10 @@ def get_multiple_players():
                 player_dict["bullet"] = response_data["chess_bullet"]["last"]["rating"]
             else:
                 player_dict["bullet"] = 0
-    
+
         requests.post(url="http://localhost:8000/newplayers", json=player_dict)
-        
     close_db_connection(conn_init, cur_init)
+
 
 if __name__ == "__main__":
     """name = get_player_name()
