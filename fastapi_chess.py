@@ -43,6 +43,7 @@ create_table()
 
 app = FastAPI()
 
+
 class NewPlayer(BaseModel):
     username: str
     vorname: str
