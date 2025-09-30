@@ -1,6 +1,8 @@
 import requests
 
-headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+    }
 
 
 def get_best_player_and_post_in_db():
@@ -10,16 +12,19 @@ def get_best_player_and_post_in_db():
     response = requests.get(url=url_leaderboards,headers=headers)
     player_data = response.json()
 
-    post_best_players_in_db(url_single_player, player_data)
+    post_best_players_in_db(url_single_player, player_data, "rapid")
+    post_best_players_in_db(url_single_player, player_data, "blitz")
+    post_best_players_in_db(url_single_player, player_data, "bullet")
 
 
 def get_player_name(rapid_player):
     name = rapid_player.get("name")
     if name == None:
         name = ("None", "None")
+        return name[1], name[0]
     else:
-        name = name.split()
-
+        name = name.split()        
+        
     return name[1], name[0]
 
 
@@ -37,26 +42,52 @@ def get_blitz_or_bullet_elo(url_single_player, player_data, username, modus):
         return 0
    
 
-def post_best_players_in_db(url_single_player, player_data):   
-    for rapid_player in player_data["live_rapid"]:
-        player_dict = {
-            "username": rapid_player["username"],
-            "vorname": "", 
-            "name": "", 
-            "rapid": rapid_player["score"], 
-            "blitz": 0, 
-            "bullet": 0
-            }
+def post_best_players_in_db(url_single_player, player_data, modus):   
+    for player in player_data[f"live_{modus}"]:
+        if modus == "rapid":
+            player_dict = {
+                "username": player["username"],
+                "vorname": "", 
+                "name": "", 
+                "rapid": player["score"], 
+                "blitz": 0, 
+                "bullet": 0
+                }
 
-        player_dict["name"], player_dict["vorname"] = get_player_name(rapid_player)
-        player_dict["blitz"] = get_blitz_or_bullet_elo(url_single_player, player_data, player_dict["username"], "blitz")
-        player_dict["bullet"] = get_blitz_or_bullet_elo(url_single_player, player_data, player_dict["username"], "bullet")
+            player_dict["name"], player_dict["vorname"] = get_player_name(player)
+            player_dict["blitz"] = get_blitz_or_bullet_elo(url_single_player, player_data, player_dict["username"], "blitz")
+            player_dict["bullet"] = get_blitz_or_bullet_elo(url_single_player, player_data, player_dict["username"], "bullet")
+
+        elif modus == "blitz":
+            player_dict = {
+                "username": player["username"],
+                "vorname": "", 
+                "name": "", 
+                "rapid": 0, 
+                "blitz": player["score"], 
+                "bullet": 0
+                }
+
+            player_dict["name"], player_dict["vorname"] = get_player_name(player)
+            player_dict["rapid"] = get_blitz_or_bullet_elo(url_single_player, player_data, player_dict["username"], "rapid")
+            player_dict["bullet"] = get_blitz_or_bullet_elo(url_single_player, player_data, player_dict["username"], "bullet")
+        
+        else:
+            player_dict = {
+                "username": player["username"],
+                "vorname": "", 
+                "name": "", 
+                "rapid": 0, 
+                "blitz": 0, 
+                "bullet": player["score"]
+                }
+
+            player_dict["name"], player_dict["vorname"] = get_player_name(player)
+            player_dict["rapid"] = get_blitz_or_bullet_elo(url_single_player, player_data, player_dict["username"], "rapid")
+            player_dict["blitz"] = get_blitz_or_bullet_elo(url_single_player, player_data, player_dict["username"], "blitz")
 
         requests.post(url="http://localhost:8000/newplayers", json=player_dict)
 
 
 if __name__ == "__main__":
     get_best_player_and_post_in_db()
-
-
-# Funktionen in Teilfunktionen unterteilen und eine mögliche Eingabe einbauen ob top 50 in rapid, blitz oder bullet in DB eingetragen werden sollen
