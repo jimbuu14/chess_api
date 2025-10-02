@@ -81,6 +81,17 @@ async def get_playerid(id: int = 0):
     close_db_connection(conn_init, cur_init)
     return player_data
 
+@app.get('/username/{username}')
+async def get_playerid(username: str =""):
+    conn_init, cur_init = get_db_connection()
+    cur_init.execute(f'SELECT username FROM chess_players WHERE username = %s', (username,))
+    player_username = cur_init.fetchone()
+    close_db_connection(conn_init, cur_init)
+    if player_username == None:
+        return None
+    else:
+        return player_username
+    
 @app.get('/player')
 async def player(name:str = None, vorname:str = None):
     conn_init, cur_init = get_db_connection()
@@ -113,3 +124,5 @@ async def newplayer(player: NewPlayer):
     conn_init.commit()
     close_db_connection(conn_init, cur_init)
 
+
+# Ganze Zeile eines Spielers ausgeben lassen mit Username als Eingabe ähnlich wie playerid Endpunkt
